@@ -47,6 +47,11 @@ import (
 	"github.com/daos-stack/daos/src/control/server/storage/scm"
 )
 
+const (
+	ControlPlaneName = "DAOS Control Server"
+	DataPlaneName    = "DAOS I/O Server"
+)
+
 func cfgHasBdev(cfg *Configuration) bool {
 	for _, srvCfg := range cfg.Servers {
 		if len(srvCfg.Storage.Bdev.DeviceList) > 0 {
@@ -66,8 +71,6 @@ const maxIoServers = 2
 
 // Start is the entry point for a daos_server instance.
 func Start(log *logging.LeveledLogger, cfg *Configuration) error {
-	log.Debugf("cfg: %#v", cfg)
-
 	err := cfg.Validate()
 	if err != nil {
 		return errors.Wrapf(err, "%s: validation failed", cfg.Path)
@@ -123,11 +126,6 @@ func Start(log *logging.LeveledLogger, cfg *Configuration) error {
 
 	// Don't bother with these checks if there aren't any block devices configured.
 	if cfgHasBdev(cfg) {
-		// Remove when bdev forwarding to pbin works (DAOS-3485).
-		if len(cfg.Servers) > 1 {
-			return errors.New("NVMe support only available with single server in this release")
-		}
-
 		if hugePages.Free != hugePages.Total {
 			// Not sure if this should be an error, per se, but I think we want to display it
 			// on the console to let the admin know that there might be something that needs
@@ -207,65 +205,33 @@ func Start(log *logging.LeveledLogger, cfg *Configuration) error {
 
 	grpcServer := grpc.NewServer(tcOpt)
 	ctlpb.RegisterMgmtCtlServer(grpcServer, controlService)
-
-	// If running as root and user name specified in config file, respawn proc.
-	needsRespawn := syscall.Getuid() == 0 && cfg.UserName != ""
-
-	// Only provide IO/Agent communication if not attempting to respawn after format,
-	// otherwise, only provide gRPC mgmt control service for hardware provisioning.
-	if !needsRespawn {
-		mgmtpb.RegisterMgmtSvcServer(grpcServer, newMgmtSvc(harness, membership))
-	}
+	mgmtpb.RegisterMgmtSvcServer(grpcServer, newMgmtSvc(harness, membership))
 
 	go func() {
 		_ = grpcServer.Serve(lis)
 	}()
 	defer grpcServer.GracefulStop()
 
-	log.Infof("DAOS control server (pid %d) listening on %s", os.Getpid(), controlAddr)
+	log.Infof("%s (pid %d) listening on %s", ControlPlaneName, os.Getpid(), controlAddr)
 
 	sigChan := make(chan os.Signal)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 	go func() {
-		for {
-			select {
-			case sig := <-sigChan:
-				log.Debugf("Caught signal: %s", sig)
-				if err := drpcCleanup(cfg.SocketDir); err != nil {
-					log.Errorf("error during dRPC cleanup: %s", err)
-				}
-				shutdown()
-			}
+		sig := <-sigChan
+		log.Debugf("Caught signal: %s", sig)
+		if err := drpcCleanup(cfg.SocketDir); err != nil {
+			log.Errorf("error during dRPC cleanup: %s", err)
 		}
+		shutdown()
 	}()
 
-	// If the configuration is SCM-only, don't require the running user to be
-	// root in order to handle storage setup.
-	//
-	// TODO: Remove all references to root when NVMe support is added to the
-	// privileged binary helper.
-	if !cfgHasBdev(cfg) || syscall.Geteuid() == 0 {
-		if err := harness.AwaitStorageReady(ctx, cfg.RecreateSuperblocks); err != nil {
-			return err
-		}
+	if err := harness.AwaitStorageReady(ctx, cfg.RecreateSuperblocks); err != nil {
+		return err
 	}
 
 	if err := harness.CreateSuperblocks(cfg.RecreateSuperblocks); err != nil {
 		return err
 	}
 
-	// TODO: Move any ownership changes into the privileged binary as necessary.
-	if needsRespawn {
-		// Chown required files and respawn process under new user.
-		if err := changeFileOwnership(cfg); err != nil {
-			return errors.WithMessage(err, "changing file ownership")
-		}
-
-		log.Infof("formatting complete and file ownership changed,"+
-			"please rerun %s as user %s\n", os.Args[0], cfg.UserName)
-
-		return nil
-	}
-
-	return errors.Wrap(harness.Start(ctx), "DAOS I/O Server exited with error")
+	return errors.Wrapf(harness.Start(ctx), "%s exited with error", DataPlaneName)
 }
