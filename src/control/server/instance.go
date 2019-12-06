@@ -46,6 +46,7 @@ import (
 // daos_io_server.
 type IOServerStarter interface {
 	Start(context.Context, chan<- error) error
+	IsStarted() bool
 	GetConfig() *ioserver.Config
 }
 
@@ -214,6 +215,10 @@ func (srv *IOServerInstance) Start(ctx context.Context, errChan chan<- error) er
 	}
 
 	return srv.runner.Start(ctx, errChan)
+}
+
+func (srv *IOServerInstance) IsStarted() bool {
+	return srv.runner.IsStarted()
 }
 
 // NotifyReady receives a ready message from the running IOServer

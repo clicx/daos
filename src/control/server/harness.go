@@ -244,17 +244,22 @@ func (h *IOServerHarness) Start(parent context.Context, membership *system.Membe
 		}
 	}
 
-	// now monitor them
-	select {
-	case <-parent.Done():
-		return parent.Err()
-	case err := <-errChan:
-		// If we receive an error from any instance, shut them all down.
-		// TODO: Restart failed instances rather than shutting everything
-		// down.
-		h.log.Errorf("instance error: %s", err)
-		if err != nil {
-			return errors.Wrap(err, "Instance error")
+	for {
+		select {
+		case <-parent.Done():
+			return parent.Err()
+		case err := <-errChan:
+			// If we receive an error from any instance, shut them all down.
+			// TODO: Restart failed instances rather than shutting everything
+			// down.
+			h.log.Errorf("instance exited: %v", err)
+			//			if err != nil {
+			//				return errors.Wrap(err, "Instance error")
+			//			}
+			for _, instance := range instances {
+				h.log.Debugf("instance %d runner started? %v\n", instance.Index(),
+					instance.IsStarted())
+			}
 		}
 	}
 
