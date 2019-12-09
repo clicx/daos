@@ -81,6 +81,7 @@ type Connect interface {
 	DevStateQuery(*mgmtpb.DevStateReq) ResultStateMap
 	StorageSetFaulty(*mgmtpb.DevStateReq) ResultStateMap
 	SystemMemberQuery() (system.Members, error)
+	SystemStart() error
 	SystemStop(SystemStopReq) (system.MemberResults, error)
 	LeaderQuery(LeaderQueryReq) (*LeaderQueryResp, error)
 	ListPools(ListPoolsReq) (*ListPoolsResp, error)

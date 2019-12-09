@@ -193,6 +193,11 @@ func (tc *testConn) ListPools(req client.ListPoolsReq) (*client.ListPoolsResp, e
 	return &client.ListPoolsResp{}, nil
 }
 
+func (tc *testConn) SystemStart() error {
+	tc.appendInvocation("SystemStart")
+	return nil
+}
+
 func (tc *testConn) SetTransportConfig(cfg *security.TransportConfig) {
 	tc.appendInvocation("SetTransportConfig")
 }

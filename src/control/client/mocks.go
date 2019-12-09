@@ -168,6 +168,10 @@ func (m *mockMgmtCtlClient) SystemStop(ctx context.Context, req *ctlpb.SystemSto
 	return &ctlpb.SystemStopResp{}, nil
 }
 
+func (m *mockMgmtCtlClient) SystemStart(ctx context.Context, req *ctlpb.SystemStartReq, o ...grpc.CallOption) (*ctlpb.SystemStartResp, error) {
+	return &ctlpb.SystemStartResp{}, nil
+}
+
 func newMockMgmtCtlClient(
 	ctrlrs NvmeControllers,
 	ctrlrResults NvmeControllerResults,

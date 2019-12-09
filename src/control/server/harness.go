@@ -196,6 +196,12 @@ func (h *IOServerHarness) Start(parent context.Context, membership *system.Membe
 	h.started = true
 	h.Unlock()
 
+	defer func() {
+		h.Lock()
+		h.started = false
+		h.Unlock()
+	}()
+
 	instances := h.Instances()
 	ctx, shutdown := context.WithCancel(parent)
 	defer shutdown()

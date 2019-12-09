@@ -201,3 +201,21 @@ func (svc *ControlService) SystemStop(ctx context.Context, req *ctlpb.SystemStop
 
 	return resp, nil
 }
+
+// SystemStart implements the method defined for the Management Service.
+//
+// Initiate controlled restart of DAOS system.
+func (svc *ControlService) SystemStart(ctx context.Context, req *ctlpb.SystemStartReq) (*ctlpb.SystemStartResp, error) {
+	resp := &ctlpb.SystemStartResp{}
+
+	svc.log.Debug("received SystemStart RPC; proceeding to restart DAOS system")
+
+	// perform controlled restart and populate response with results
+	if err := svc.harness.StartInstances(); err != nil {
+		return nil, err
+	}
+
+	svc.log.Debug("responding to SystemStart RPC")
+
+	return resp, nil
+}
