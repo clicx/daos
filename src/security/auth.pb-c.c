@@ -187,6 +187,141 @@ void   auth__credential__free_unpacked
   assert(message->base.descriptor == &auth__credential__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   auth__get_credential_resp__init
+                     (Auth__GetCredentialResp         *message)
+{
+  static const Auth__GetCredentialResp init_value = AUTH__GET_CREDENTIAL_RESP__INIT;
+  *message = init_value;
+}
+size_t auth__get_credential_resp__get_packed_size
+                     (const Auth__GetCredentialResp *message)
+{
+  assert(message->base.descriptor == &auth__get_credential_resp__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t auth__get_credential_resp__pack
+                     (const Auth__GetCredentialResp *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &auth__get_credential_resp__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t auth__get_credential_resp__pack_to_buffer
+                     (const Auth__GetCredentialResp *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &auth__get_credential_resp__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+Auth__GetCredentialResp *
+       auth__get_credential_resp__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (Auth__GetCredentialResp *)
+     protobuf_c_message_unpack (&auth__get_credential_resp__descriptor,
+                                allocator, len, data);
+}
+void   auth__get_credential_resp__free_unpacked
+                     (Auth__GetCredentialResp *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &auth__get_credential_resp__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   auth__validate_credential_req__init
+                     (Auth__ValidateCredentialReq         *message)
+{
+  static const Auth__ValidateCredentialReq init_value = AUTH__VALIDATE_CREDENTIAL_REQ__INIT;
+  *message = init_value;
+}
+size_t auth__validate_credential_req__get_packed_size
+                     (const Auth__ValidateCredentialReq *message)
+{
+  assert(message->base.descriptor == &auth__validate_credential_req__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t auth__validate_credential_req__pack
+                     (const Auth__ValidateCredentialReq *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &auth__validate_credential_req__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t auth__validate_credential_req__pack_to_buffer
+                     (const Auth__ValidateCredentialReq *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &auth__validate_credential_req__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+Auth__ValidateCredentialReq *
+       auth__validate_credential_req__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (Auth__ValidateCredentialReq *)
+     protobuf_c_message_unpack (&auth__validate_credential_req__descriptor,
+                                allocator, len, data);
+}
+void   auth__validate_credential_req__free_unpacked
+                     (Auth__ValidateCredentialReq *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &auth__validate_credential_req__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   auth__validate_credential_resp__init
+                     (Auth__ValidateCredentialResp         *message)
+{
+  static const Auth__ValidateCredentialResp init_value = AUTH__VALIDATE_CREDENTIAL_RESP__INIT;
+  *message = init_value;
+}
+size_t auth__validate_credential_resp__get_packed_size
+                     (const Auth__ValidateCredentialResp *message)
+{
+  assert(message->base.descriptor == &auth__validate_credential_resp__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t auth__validate_credential_resp__pack
+                     (const Auth__ValidateCredentialResp *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &auth__validate_credential_resp__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t auth__validate_credential_resp__pack_to_buffer
+                     (const Auth__ValidateCredentialResp *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &auth__validate_credential_resp__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+Auth__ValidateCredentialResp *
+       auth__validate_credential_resp__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (Auth__ValidateCredentialResp *)
+     protobuf_c_message_unpack (&auth__validate_credential_resp__descriptor,
+                                allocator, len, data);
+}
+void   auth__validate_credential_resp__free_unpacked
+                     (Auth__ValidateCredentialResp *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &auth__validate_credential_resp__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 static const ProtobufCFieldDescriptor auth__token__field_descriptors[2] =
 {
   {
@@ -441,6 +576,146 @@ const ProtobufCMessageDescriptor auth__credential__descriptor =
   auth__credential__field_indices_by_name,
   1,  auth__credential__number_ranges,
   (ProtobufCMessageInit) auth__credential__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor auth__get_credential_resp__field_descriptors[2] =
+{
+  {
+    "status",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(Auth__GetCredentialResp, status),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "cred",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(Auth__GetCredentialResp, cred),
+    &auth__credential__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned auth__get_credential_resp__field_indices_by_name[] = {
+  1,   /* field[1] = cred */
+  0,   /* field[0] = status */
+};
+static const ProtobufCIntRange auth__get_credential_resp__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor auth__get_credential_resp__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "auth.GetCredentialResp",
+  "GetCredentialResp",
+  "Auth__GetCredentialResp",
+  "auth",
+  sizeof(Auth__GetCredentialResp),
+  2,
+  auth__get_credential_resp__field_descriptors,
+  auth__get_credential_resp__field_indices_by_name,
+  1,  auth__get_credential_resp__number_ranges,
+  (ProtobufCMessageInit) auth__get_credential_resp__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor auth__validate_credential_req__field_descriptors[1] =
+{
+  {
+    "cred",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(Auth__ValidateCredentialReq, cred),
+    &auth__credential__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned auth__validate_credential_req__field_indices_by_name[] = {
+  0,   /* field[0] = cred */
+};
+static const ProtobufCIntRange auth__validate_credential_req__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor auth__validate_credential_req__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "auth.ValidateCredentialReq",
+  "ValidateCredentialReq",
+  "Auth__ValidateCredentialReq",
+  "auth",
+  sizeof(Auth__ValidateCredentialReq),
+  1,
+  auth__validate_credential_req__field_descriptors,
+  auth__validate_credential_req__field_indices_by_name,
+  1,  auth__validate_credential_req__number_ranges,
+  (ProtobufCMessageInit) auth__validate_credential_req__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor auth__validate_credential_resp__field_descriptors[2] =
+{
+  {
+    "status",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(Auth__ValidateCredentialResp, status),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "token",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(Auth__ValidateCredentialResp, token),
+    &auth__token__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned auth__validate_credential_resp__field_indices_by_name[] = {
+  0,   /* field[0] = status */
+  1,   /* field[1] = token */
+};
+static const ProtobufCIntRange auth__validate_credential_resp__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor auth__validate_credential_resp__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "auth.ValidateCredentialResp",
+  "ValidateCredentialResp",
+  "Auth__ValidateCredentialResp",
+  "auth",
+  sizeof(Auth__ValidateCredentialResp),
+  2,
+  auth__validate_credential_resp__field_descriptors,
+  auth__validate_credential_resp__field_indices_by_name,
+  1,  auth__validate_credential_resp__number_ranges,
+  (ProtobufCMessageInit) auth__validate_credential_resp__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 static const ProtobufCEnumValue auth__flavor__enum_values_by_number[2] =

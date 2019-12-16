@@ -19,12 +19,15 @@ typedef struct _Auth__Token Auth__Token;
 typedef struct _Auth__Sys Auth__Sys;
 typedef struct _Auth__SysVerifier Auth__SysVerifier;
 typedef struct _Auth__Credential Auth__Credential;
+typedef struct _Auth__GetCredentialResp Auth__GetCredentialResp;
+typedef struct _Auth__ValidateCredentialReq Auth__ValidateCredentialReq;
+typedef struct _Auth__ValidateCredentialResp Auth__ValidateCredentialResp;
 
 
 /* --- enums --- */
 
 /*
- * Authentication token includes a packed structure of the specified flavor
+ * Types of authentication token
  */
 typedef enum _Auth__Flavor {
   AUTH__FLAVOR__AUTH_NONE = 0,
@@ -37,7 +40,13 @@ typedef enum _Auth__Flavor {
 struct  _Auth__Token
 {
   ProtobufCMessage base;
+  /*
+   * flavor of this authentication token
+   */
   Auth__Flavor flavor;
+  /*
+   * packed structure of the specified flavor
+   */
   ProtobufCBinaryData data;
 };
 #define AUTH__TOKEN__INIT \
@@ -46,15 +55,30 @@ struct  _Auth__Token
 
 
 /*
- * Token structure for AUTH_SYS flavor
+ * Token structure for AUTH_SYS flavor cred
  */
 struct  _Auth__Sys
 {
   ProtobufCMessage base;
+  /*
+   * timestamp
+   */
   uint64_t stamp;
+  /*
+   * machine name
+   */
   char *machinename;
+  /*
+   * user name
+   */
   char *user;
+  /*
+   * primary group name
+   */
   char *group;
+  /*
+   * secondary group names
+   */
   size_t n_groups;
   char **groups;
   /*
@@ -67,9 +91,15 @@ struct  _Auth__Sys
     , 0, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, 0,NULL, (char *)protobuf_c_empty_string }
 
 
+/*
+ * Token structure for AUTH_SYS flavor verifier
+ */
 struct  _Auth__SysVerifier
 {
   ProtobufCMessage base;
+  /*
+   * signature of the auth token data
+   */
   ProtobufCBinaryData signature;
 };
 #define AUTH__SYS_VERIFIER__INIT \
@@ -78,20 +108,86 @@ struct  _Auth__SysVerifier
 
 
 /*
- * SecurityCredential includes the auth token and a verifier that can be used by
- * the server to verify the integrity of the token.
  * Token and verifier are expected to have the same flavor type.
  */
 struct  _Auth__Credential
 {
   ProtobufCMessage base;
+  /*
+   * authentication token
+   */
   Auth__Token *token;
+  /*
+   * to verify integrity of the token
+   */
   Auth__Token *verifier;
+  /*
+   * the agent that created this credential
+   */
   char *origin;
 };
 #define AUTH__CREDENTIAL__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&auth__credential__descriptor) \
     , NULL, NULL, (char *)protobuf_c_empty_string }
+
+
+/*
+ * GetCredentialResp represents the result of a request to fetch authentication
+ * credentials.
+ */
+struct  _Auth__GetCredentialResp
+{
+  ProtobufCMessage base;
+  /*
+   * Status of the request
+   */
+  int32_t status;
+  /*
+   * Caller's authentication credential
+   */
+  Auth__Credential *cred;
+};
+#define AUTH__GET_CREDENTIAL_RESP__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&auth__get_credential_resp__descriptor) \
+    , 0, NULL }
+
+
+/*
+ * ValidateCredentialReq represents a request to verify a set of authentication
+ * credentials.
+ */
+struct  _Auth__ValidateCredentialReq
+{
+  ProtobufCMessage base;
+  /*
+   * Credential to be validated
+   */
+  Auth__Credential *cred;
+};
+#define AUTH__VALIDATE_CREDENTIAL_REQ__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&auth__validate_credential_req__descriptor) \
+    , NULL }
+
+
+/*
+ * ValidateCredentialResp represents the result of a request to validate
+ * authentication credentials.
+ */
+struct  _Auth__ValidateCredentialResp
+{
+  ProtobufCMessage base;
+  /*
+   * Status of the request
+   */
+  int32_t status;
+  /*
+   * Validated authentication token from the credential
+   */
+  Auth__Token *token;
+};
+#define AUTH__VALIDATE_CREDENTIAL_RESP__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&auth__validate_credential_resp__descriptor) \
+    , 0, NULL }
 
 
 /* Auth__Token methods */
@@ -170,6 +266,63 @@ Auth__Credential *
 void   auth__credential__free_unpacked
                      (Auth__Credential *message,
                       ProtobufCAllocator *allocator);
+/* Auth__GetCredentialResp methods */
+void   auth__get_credential_resp__init
+                     (Auth__GetCredentialResp         *message);
+size_t auth__get_credential_resp__get_packed_size
+                     (const Auth__GetCredentialResp   *message);
+size_t auth__get_credential_resp__pack
+                     (const Auth__GetCredentialResp   *message,
+                      uint8_t             *out);
+size_t auth__get_credential_resp__pack_to_buffer
+                     (const Auth__GetCredentialResp   *message,
+                      ProtobufCBuffer     *buffer);
+Auth__GetCredentialResp *
+       auth__get_credential_resp__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   auth__get_credential_resp__free_unpacked
+                     (Auth__GetCredentialResp *message,
+                      ProtobufCAllocator *allocator);
+/* Auth__ValidateCredentialReq methods */
+void   auth__validate_credential_req__init
+                     (Auth__ValidateCredentialReq         *message);
+size_t auth__validate_credential_req__get_packed_size
+                     (const Auth__ValidateCredentialReq   *message);
+size_t auth__validate_credential_req__pack
+                     (const Auth__ValidateCredentialReq   *message,
+                      uint8_t             *out);
+size_t auth__validate_credential_req__pack_to_buffer
+                     (const Auth__ValidateCredentialReq   *message,
+                      ProtobufCBuffer     *buffer);
+Auth__ValidateCredentialReq *
+       auth__validate_credential_req__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   auth__validate_credential_req__free_unpacked
+                     (Auth__ValidateCredentialReq *message,
+                      ProtobufCAllocator *allocator);
+/* Auth__ValidateCredentialResp methods */
+void   auth__validate_credential_resp__init
+                     (Auth__ValidateCredentialResp         *message);
+size_t auth__validate_credential_resp__get_packed_size
+                     (const Auth__ValidateCredentialResp   *message);
+size_t auth__validate_credential_resp__pack
+                     (const Auth__ValidateCredentialResp   *message,
+                      uint8_t             *out);
+size_t auth__validate_credential_resp__pack_to_buffer
+                     (const Auth__ValidateCredentialResp   *message,
+                      ProtobufCBuffer     *buffer);
+Auth__ValidateCredentialResp *
+       auth__validate_credential_resp__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   auth__validate_credential_resp__free_unpacked
+                     (Auth__ValidateCredentialResp *message,
+                      ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
 typedef void (*Auth__Token_Closure)
@@ -184,6 +337,15 @@ typedef void (*Auth__SysVerifier_Closure)
 typedef void (*Auth__Credential_Closure)
                  (const Auth__Credential *message,
                   void *closure_data);
+typedef void (*Auth__GetCredentialResp_Closure)
+                 (const Auth__GetCredentialResp *message,
+                  void *closure_data);
+typedef void (*Auth__ValidateCredentialReq_Closure)
+                 (const Auth__ValidateCredentialReq *message,
+                  void *closure_data);
+typedef void (*Auth__ValidateCredentialResp_Closure)
+                 (const Auth__ValidateCredentialResp *message,
+                  void *closure_data);
 
 /* --- services --- */
 
@@ -195,6 +357,9 @@ extern const ProtobufCMessageDescriptor auth__token__descriptor;
 extern const ProtobufCMessageDescriptor auth__sys__descriptor;
 extern const ProtobufCMessageDescriptor auth__sys_verifier__descriptor;
 extern const ProtobufCMessageDescriptor auth__credential__descriptor;
+extern const ProtobufCMessageDescriptor auth__get_credential_resp__descriptor;
+extern const ProtobufCMessageDescriptor auth__validate_credential_req__descriptor;
+extern const ProtobufCMessageDescriptor auth__validate_credential_resp__descriptor;
 
 PROTOBUF_C__END_DECLS
 
