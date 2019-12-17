@@ -63,7 +63,7 @@ void mock_drpc_call_setup(void);
 void mock_drpc_call_teardown(void);
 
 /* Convenience methods to initialize mocks */
-void pack_cred_in_drpc_call_resp_body(Auth__Credential *cred);
+void pack_get_cred_resp_in_drpc_call_resp_body(Auth__GetCredentialResp *resp);
 void pack_token_in_drpc_call_resp_body(Auth__Token *token);
 
 /* Convenience methods to free mocks */

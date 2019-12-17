@@ -70,18 +70,26 @@ init_default_drpc_resp_auth_credential(void)
 }
 
 static void
-init_drpc_resp_with_sec_cred(void)
+init_drpc_resp_with_cred(Auth__Credential *cred)
+{
+	Auth__GetCredentialResp resp = AUTH__GET_CREDENTIAL_RESP__INIT;
+
+	resp.cred = cred;
+	pack_get_cred_resp_in_drpc_call_resp_body(&resp);
+}
+
+static void
+init_drpc_resp_with_default_cred(void)
 {
 	init_default_drpc_resp_auth_credential();
-	pack_cred_in_drpc_call_resp_body(
-			drpc_call_resp_return_auth_credential);
+	init_drpc_resp_with_cred(drpc_call_resp_return_auth_credential);
 }
 
 void
 free_drpc_call_resp_auth_credential()
 {
-	auth__credential__free_unpacked(
-			drpc_call_resp_return_auth_credential, NULL);
+	auth__credential__free_unpacked(drpc_call_resp_return_auth_credential,
+					NULL);
 }
 
 /*
@@ -100,7 +108,7 @@ setup_security_mocks(void **state)
 	mock_drpc_call_setup();
 	mock_drpc_close_setup();
 
-	init_drpc_resp_with_sec_cred();
+	init_drpc_resp_with_default_cred();
 
 	return 0;
 }
@@ -291,8 +299,7 @@ test_request_credentials_fails_if_reply_token_missing(void **state)
 	auth__token__free_unpacked(
 			drpc_call_resp_return_auth_credential->token, NULL);
 	drpc_call_resp_return_auth_credential->token = NULL;
-	pack_cred_in_drpc_call_resp_body(
-			drpc_call_resp_return_auth_credential);
+	init_drpc_resp_with_cred(drpc_call_resp_return_auth_credential);
 
 	assert_int_equal(dc_sec_request_creds(&creds), -DER_MISC);
 
