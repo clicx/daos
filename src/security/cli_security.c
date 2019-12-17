@@ -36,7 +36,7 @@
 static int request_credentials_via_drpc(Drpc__Response **response);
 static int process_credential_response(Drpc__Response *response,
 		d_iov_t *creds);
-static int get_cred_from_response(Drpc__Response *response);
+static int get_cred_from_response(Drpc__Response *response, d_iov_t *cred);
 
 int
 dc_sec_request_creds(d_iov_t *creds)
@@ -96,10 +96,6 @@ request_credentials_via_drpc(Drpc__Response **response)
 static int
 process_credential_response(Drpc__Response *response, d_iov_t *creds)
 {
-	int			rc;
-	size_t			cred_len;
-	Auth__Credential	*pb_cred = NULL;
-
 	if (response == NULL) {
 		D_ERROR("Response was null\n");
 		return -DER_NOREPLY;
@@ -112,27 +108,28 @@ process_credential_response(Drpc__Response *response, d_iov_t *creds)
 		return -DER_MISC;
 	}
 
-	rc = get_cred_from_response(response, &pb_cred);
-	if (rc == 0) {
-		uint8_t	*bytes;
-		size_t	bytes_len;
-
-		bytes_len = auth__credential__get_packed_size(pb_cred);
-		D_ALLOC(bytes, bytes_len);
-		if (bytes == NULL)
-			D_GOTO(out, rc = -DER_NOMEM);
-
-		auth__credential__pack(pb_cred, bytes);
-		d_iov_set(creds, bytes, bytes_len);
-	}
-
-out:
-	auth__credential__free_unpacked(pb_cred);
-	return rc;
+	return get_cred_from_response(response, creds);
 }
 
 static int
-get_cred_from_response(Drpc__Response *response, Auth__Credential **cred)
+auth_cred_to_iov(Auth__Credential *cred, d_iov_t *iov)
+{
+	size_t	len;
+	uint8_t	*packed;
+
+	len = auth__credential__get_packed_size(cred);
+	D_ALLOC(packed, len);
+	if (packed == NULL)
+		return -DER_NOMEM;
+
+	auth__credential__pack(cred, packed);
+	d_iov_set(iov, packed, len);
+
+	return 0;
+}
+
+static int
+get_cred_from_response(Drpc__Response *response, d_iov_t *cred)
 {
 	int			rc = 0;
 	Auth__GetCredentialResp	*cred_resp = NULL;
@@ -147,7 +144,7 @@ get_cred_from_response(Drpc__Response *response, Auth__Credential **cred)
 	if (cred_resp->status != 0) {
 		D_ERROR("dRPC call reported failure, status=%d\n",
 			cred_resp->status);
-		D_GOTO(out, cred_resp->status);
+		D_GOTO(out, rc = cred_resp->status);
 	}
 
 	if (cred_resp->cred == NULL) {
@@ -160,10 +157,8 @@ get_cred_from_response(Drpc__Response *response, Auth__Credential **cred)
 		D_GOTO(out, rc = -DER_PROTO);
 	}
 
-
-
+	rc = auth_cred_to_iov(cred_resp->cred, cred);
 out:
 	auth__get_credential_resp__free_unpacked(cred_resp, NULL);
 	return rc;
 }
-
