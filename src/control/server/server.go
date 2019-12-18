@@ -201,5 +201,14 @@ func Start(log *logging.LeveledLogger, cfg *Configuration) error {
 		return err
 	}
 
-	return errors.Wrap(harness.Start(ctx, membership), "DAOS harness exited with error")
+	harnessErr := make(chan error)
+	go func() {
+		harnessErr <- harness.Start(ctx, membership)
+	}()
+
+	if err := harness.restartInstances(); err != nil {
+		return err
+	}
+
+	return errors.Wrap(<-harnessErr, "DAOS harness exited with error")
 }

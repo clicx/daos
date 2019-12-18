@@ -25,6 +25,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -36,16 +37,20 @@ import (
 // IOServerHarness is responsible for managing IOServer instances
 type IOServerHarness struct {
 	sync.RWMutex
-	log       logging.Logger
-	instances []*IOServerInstance
-	started   bool
+	log            logging.Logger
+	instances      []*IOServerInstance
+	started        bool
+	startInstances chan struct{}
+	ready          chan struct{}
 }
 
 // NewHarness returns an initialized *IOServerHarness
 func NewIOServerHarness(log logging.Logger) *IOServerHarness {
 	return &IOServerHarness{
-		log:       log,
-		instances: make([]*IOServerInstance, 0, 2),
+		log:            log,
+		instances:      make([]*IOServerInstance, 0, 2),
+		startInstances: make(chan struct{}),
+		ready:          make(chan struct{}),
 	}
 }
 
@@ -195,73 +200,99 @@ func (h *IOServerHarness) Start(parent context.Context, membership *system.Membe
 	ctx, shutdown := context.WithCancel(parent)
 	defer shutdown()
 	errChan := make(chan error, len(instances))
-	// start 'em up
-	for _, instance := range instances {
-		if err := instance.Start(ctx, errChan); err != nil {
-			return err
-		}
-	}
-
-	// ... wait until they say they've started
-	for _, instance := range instances {
-		select {
-		case <-parent.Done():
-			return parent.Err()
-		case err := <-errChan:
-			if err != nil {
-				return err
-			}
-		case ready := <-instance.AwaitReady():
-			h.log.Debugf("instance ready: %v", ready)
-			if err := instance.SetRank(ctx, ready); err != nil {
-				return err
-			}
-		}
-
-		// If this instance is a MS replica, start it before
-		// moving on so that other instances can join.
-		if instance.IsMSReplica() {
-			if err := instance.StartManagementService(); err != nil {
-				return errors.Wrap(err, "failed to start management service")
-			}
-			// registered instance with system membership
-			m, err := instance.newMember()
-			if err != nil {
-				return errors.Wrap(err, "failed to get member from instance")
-			}
-			count, err := membership.Add(m)
-			if err != nil {
-				return errors.Wrap(err, "failed to add MS replica to membership")
-			}
-			if count != 1 {
-				return errors.Errorf("expected MS replica to be first member "+
-					"(want 1, got %d)", count)
-			}
-		}
-
-		if err := instance.LoadModules(); err != nil {
-			return errors.Wrap(err, "failed to load I/O server modules")
-		}
-	}
 
 	for {
+		fmt.Println("waiting to start instances")
+		close(h.ready)
 		select {
 		case <-parent.Done():
 			return parent.Err()
-		case err := <-errChan:
-			// If we receive an error from any instance, shut them all down.
-			// TODO: Restart failed instances rather than shutting everything
-			// down.
-			h.log.Errorf("instance exited: %v", err)
-			//			if err != nil {
-			//				return errors.Wrap(err, "Instance error")
-			//			}
-			for _, instance := range instances {
-				h.log.Debugf("instance %d runner started? %v\n", instance.Index(),
-					instance.IsStarted())
+		case <-h.startInstances:
+		}
+		h.ready = make(chan struct{})
+
+		// start 'em up
+		for _, instance := range instances {
+			if err := instance.Start(ctx, errChan); err != nil {
+				return err
+			}
+		}
+
+		// ... wait until they say they've started
+		for _, instance := range instances {
+			select {
+			case <-parent.Done():
+				return parent.Err()
+			case err := <-errChan:
+				if err != nil {
+					return err
+				}
+			case ready := <-instance.AwaitReady():
+				h.log.Debugf("instance ready: %v", ready)
+				if err := instance.SetRank(ctx, ready); err != nil {
+					return err
+				}
+			}
+
+			// If this instance is a MS replica, start it before
+			// moving on so that other instances can join.
+			if instance.IsMSReplica() {
+				if err := instance.StartManagementService(); err != nil {
+					return errors.Wrap(err, "failed to start management service")
+				}
+				// registered instance with system membership
+				m, err := instance.newMember()
+				if err != nil {
+					return errors.Wrap(err, "failed to get member from instance")
+				}
+				count, err := membership.Add(m)
+				if err != nil {
+					return errors.Wrap(err, "failed to add MS replica to membership")
+				}
+				if count != 1 {
+					return errors.Errorf("expected MS replica to be first member "+
+						"(want 1, got %d)", count)
+				}
+			}
+
+			if err := instance.LoadModules(); err != nil {
+				return errors.Wrap(err, "failed to load I/O server modules")
+			}
+		}
+
+		for range instances {
+			select {
+			case <-parent.Done():
+				return parent.Err()
+			case err := <-errChan:
+				// TODO: Restart failed instances rather than shutting everything
+				// down.
+				h.log.Infof("instance exited: %v", err)
+				for _, instance := range instances {
+					h.log.Debugf("instance %d running? %v\n", instance.Index(),
+						instance.IsStarted())
+				}
+			}
+		}
+
+		// when all instances have stopped, loop can continue and block on h.startInstances chan
+		for _, instance := range instances {
+			if instance.IsStarted() {
+				return errors.Errorf("instance %d is unexpectedly running!", instance.Index())
 			}
 		}
 	}
+}
+
+func (h *IOServerHarness) restartInstances() error {
+	<-h.ready // await harness to be ready to start instances
+
+	if !h.IsStarted() {
+		return errors.New("can't restart instances: harness not started")
+	}
+
+	close(h.startInstances)                // trigger harness to start its instances
+	h.startInstances = make(chan struct{}) // re-open channel for instance restart
 
 	return nil
 }

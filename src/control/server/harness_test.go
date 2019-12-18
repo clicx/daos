@@ -329,6 +329,10 @@ func TestHarnessIOServerStart(t *testing.T) {
 				close(done)
 			}(t, tc.expStartErr, harness)
 
+			if err := harness.restartInstances(); err != nil {
+				t.Fatal(err.Error())
+			}
+
 			time.Sleep(50 * time.Millisecond)
 			shutdown()
 			<-done // wait for inner goroutine to finish
