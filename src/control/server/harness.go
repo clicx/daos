@@ -203,13 +203,13 @@ func (h *IOServerHarness) Start(parent context.Context, membership *system.Membe
 
 	for {
 		fmt.Println("waiting to start instances")
-		close(h.ready)
+		close(h.ready) // unblock attempts to trigger startInstances
 		select {
 		case <-parent.Done():
 			return parent.Err()
-		case <-h.startInstances:
+		case <-h.startInstances: // start instances on receive
 		}
-		h.ready = make(chan struct{})
+		h.ready = make(chan struct{}) // block attempts to trigger startInstances
 
 		// start 'em up
 		for _, instance := range instances {
@@ -281,6 +281,7 @@ func (h *IOServerHarness) Start(parent context.Context, membership *system.Membe
 				return errors.Errorf("instance %d is unexpectedly running!", instance.Index())
 			}
 		}
+		h.startInstances = make(chan struct{}) // re-open channel for instance restart
 	}
 }
 
@@ -291,8 +292,7 @@ func (h *IOServerHarness) restartInstances() error {
 		return errors.New("can't restart instances: harness not started")
 	}
 
-	close(h.startInstances)                // trigger harness to start its instances
-	h.startInstances = make(chan struct{}) // re-open channel for instance restart
+	close(h.startInstances) // trigger harness to start its instances
 
 	return nil
 }
