@@ -123,19 +123,21 @@ func (m *SecurityModule) HandleCall(session *drpc.Session, method int32, body []
 		return nil, err
 	}
 
-	response, err := auth.AuthSysRequestFromCreds(m.ext, info, signingKey)
+	cred, err := auth.AuthSysRequestFromCreds(m.ext, info, signingKey)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Failed to get AuthSys struct")
 	}
 
-	responseBytes, err := proto.Marshal(response)
+	resp := &auth.GetCredentialResp{Status: 0, Cred: cred}
+
+	responseBytes, err := proto.Marshal(resp)
 	if err != nil {
 		return nil, drpc.MarshalingFailure()
 	}
 	return responseBytes, nil
 }
 
-//ID will return Security module ID
+// ID will return Security module ID
 func (m *SecurityModule) ID() int32 {
 	return drpc.ModuleSecurityAgent
 }
