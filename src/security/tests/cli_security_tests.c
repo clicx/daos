@@ -320,11 +320,24 @@ test_request_credentials_fails_if_reply_token_missing(void **state)
 }
 
 static void
+test_request_credentials_fails_if_reply_cred_status(void **state)
+{
+	d_iov_t			creds;
+	Auth__GetCredentialResp	resp = AUTH__GET_CREDENTIAL_RESP__INIT;
+
+	resp.status = -DER_UNKNOWN;
+	pack_get_cred_resp_in_drpc_call_resp_body(&resp);
+	memset(&creds, 0, sizeof(d_iov_t));
+
+	assert_int_equal(dc_sec_request_creds(&creds), -DER_UNKNOWN);
+}
+
+static void
 test_request_credentials_returns_raw_bytes(void **state)
 {
 	d_iov_t	creds;
-	size_t		expected_len;
-	uint8_t		*expected_data;
+	size_t	expected_len;
+	uint8_t	*expected_data;
 
 	memset(&creds, 0, sizeof(d_iov_t));
 
@@ -382,6 +395,8 @@ main(void)
 			test_request_credentials_fails_if_reply_token_missing),
 		SECURITY_UTEST(
 			test_request_credentials_fails_if_reply_cred_missing),
+		SECURITY_UTEST(
+			test_request_credentials_fails_if_reply_cred_status),
 		SECURITY_UTEST(
 			test_request_credentials_returns_raw_bytes),
 	};
