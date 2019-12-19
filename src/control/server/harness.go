@@ -27,6 +27,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"github.com/pkg/errors"
 
@@ -37,11 +38,11 @@ import (
 // IOServerHarness is responsible for managing IOServer instances
 type IOServerHarness struct {
 	sync.RWMutex
-	log            logging.Logger
-	instances      []*IOServerInstance
-	started        bool
-	startInstances chan struct{}
-	ready          chan struct{}
+	log             logging.Logger
+	instances       []*IOServerInstance
+	started         bool
+	startInstances  chan struct{}
+	readyForRestart int32
 }
 
 // NewHarness returns an initialized *IOServerHarness
@@ -49,8 +50,7 @@ func NewIOServerHarness(log logging.Logger) *IOServerHarness {
 	return &IOServerHarness{
 		log:            log,
 		instances:      make([]*IOServerInstance, 0, 2),
-		startInstances: make(chan struct{}),
-		ready:          make(chan struct{}),
+		startInstances: make(chan struct{}, 1),
 	}
 }
 
@@ -202,15 +202,7 @@ func (h *IOServerHarness) Start(parent context.Context, membership *system.Membe
 	errChan := make(chan error, len(instances))
 
 	for {
-		fmt.Println("waiting to start instances")
-		close(h.ready) // unblock attempts to trigger startInstances
-		select {
-		case <-parent.Done():
-			return parent.Err()
-		case <-h.startInstances: // start instances on receive
-		}
-		h.ready = make(chan struct{}) // block attempts to trigger startInstances
-
+		h.log.Debug("starting instances")
 		// start 'em up
 		for _, instance := range instances {
 			if err := instance.Start(ctx, errChan); err != nil {
@@ -260,39 +252,57 @@ func (h *IOServerHarness) Start(parent context.Context, membership *system.Membe
 			}
 		}
 
-		for range instances {
+		h.log.Debug("monitoring instances")
+	Monitor:
+		for {
 			select {
 			case <-parent.Done():
+				h.log.Debug("stopping harness")
 				return parent.Err()
 			case err := <-errChan:
 				// TODO: Restart failed instances rather than shutting everything
 				// down.
-				h.log.Infof("instance exited: %v", err)
-				for _, instance := range instances {
-					h.log.Debugf("instance %d running? %v\n", instance.Index(),
-						instance.IsStarted())
+				allInstancesStopped := !h.HasStartedInstances()
+				msg := fmt.Sprintf("instance exited: %v", err)
+				if allInstancesStopped {
+					msg += ", all instances stopped!"
+					atomic.StoreInt32(&h.readyForRestart, 1)
 				}
+				h.log.Info(msg)
+			case <-h.startInstances:
+				h.log.Debug("restart instances signal received")
+				if h.HasStartedInstances() {
+					return errors.New("attempts to restart when instances are already running")
+				}
+				atomic.StoreInt32(&h.readyForRestart, 0)
+				break Monitor // restart outer for loop
 			}
 		}
-
-		// when all instances have stopped, loop can continue and block on h.startInstances chan
-		for _, instance := range instances {
-			if instance.IsStarted() {
-				return errors.Errorf("instance %d is unexpectedly running!", instance.Index())
-			}
-		}
-		h.startInstances = make(chan struct{}) // re-open channel for instance restart
 	}
 }
 
-func (h *IOServerHarness) restartInstances() error {
-	<-h.ready // await harness to be ready to start instances
+func (h *IOServerHarness) HasStartedInstances() bool {
+	h.RLock()
+	defer h.RUnlock()
 
-	if !h.IsStarted() {
-		return errors.New("can't restart instances: harness not started")
+	for _, instance := range h.instances {
+		if instance.IsStarted() {
+			return true
+		}
 	}
 
-	close(h.startInstances) // trigger harness to start its instances
+	return false
+}
+
+func (h *IOServerHarness) StartInstances() error {
+	if !h.IsStarted() {
+		return errors.New("can't start instances: harness not started")
+	}
+	if h.HasStartedInstances() {
+		return errors.New("can't start instances: already started")
+	}
+
+	h.startInstances <- struct{}{} // trigger harness to start its instances
 
 	return nil
 }
