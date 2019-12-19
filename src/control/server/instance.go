@@ -25,6 +25,7 @@ package server
 
 import (
 	"context"
+	"net"
 	"os"
 	"sync"
 
@@ -464,6 +465,16 @@ func (srv *IOServerInstance) newMember() (*system.Member, error) {
 	}
 	sb := srv.getSuperblock()
 
-	return system.NewMember(sb.Rank.Uint32(), sb.UUID,
-		srv.msClient.cfg.ControlAddr, system.MemberStateStarted), nil
+	msAddr, err := srv.msClient.LeaderAddress()
+	if err != nil {
+		return nil, err
+	}
+
+	addr, err := net.ResolveTCPAddr("tcp", msAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	return system.NewMember(sb.Rank.Uint32(), sb.UUID, addr,
+		system.MemberStateStarted), nil
 }
