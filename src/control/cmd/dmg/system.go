@@ -95,7 +95,7 @@ func (cmd *systemStopCmd) Execute(args []string) error {
 			msg = r.Err.Error()
 		}
 		resStr := fmt.Sprintf("%s%s%s", r.Action, rowFieldSep, msg)
-		if err = groups.AddHost(resStr, r.Rank); err != nil {
+		if err = groups.AddHost(resStr, fmt.Sprintf("%d", r.Rank)); err != nil {
 			return errors.Wrap(err, "adding rank result to group")
 		}
 	}
