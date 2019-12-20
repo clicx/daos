@@ -38,6 +38,15 @@ import (
 	"github.com/daos-stack/daos/src/control/security/auth"
 )
 
+func TestSecurityModule_ID(t *testing.T) {
+	log, buf := logging.NewTestLogger(t.Name())
+	defer common.ShowBufferOnFailure(t, buf)
+
+	mod := NewSecurityModule(log, nil)
+
+	common.AssertEqual(t, mod.ID(), int32(drpc.ModuleSecurityAgent), "wrong drpc module")
+}
+
 func newTestSession(t *testing.T, log logging.Logger, conn net.Conn) *drpc.Session {
 	svc := drpc.NewModuleService(log)
 	return drpc.NewSession(conn, svc)
