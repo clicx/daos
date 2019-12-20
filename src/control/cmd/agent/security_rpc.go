@@ -102,6 +102,14 @@ func NewSecurityModule(log logging.Logger, tc *security.TransportConfig) *Securi
 	return &mod
 }
 
+func (m *SecurityModule) marshalResp(resp proto.Message) ([]byte, error) {
+	responseBytes, err := proto.Marshal(resp)
+	if err != nil {
+		return nil, drpc.MarshalingFailure()
+	}
+	return responseBytes, nil
+}
+
 // HandleCall is the handler for calls to the SecurityModule
 func (m *SecurityModule) HandleCall(session *drpc.Session, method int32, body []byte) ([]byte, error) {
 	if method != drpc.MethodRequestCredentials {
@@ -110,31 +118,34 @@ func (m *SecurityModule) HandleCall(session *drpc.Session, method int32, body []
 
 	uConn, ok := session.Conn.(*net.UnixConn)
 	if !ok {
-		return nil, errors.New("connection is not a unix socket")
+		return nil, drpc.NewFailureWithMessage("connection is not a unix socket")
 	}
+
+	resp := &auth.GetCredentialResp{}
 
 	info, err := security.DomainInfoFromUnixConn(m.log, uConn)
 	if err != nil {
-		return nil, errors.WithMessage(err, "Unable to get credentials for client socket")
+		m.log.Errorf("Unable to get credentials for client socket: %s", err)
+		resp.Status = drpc.DaosMiscError
+		return m.marshalResp(resp)
 	}
 
 	signingKey, err := m.config.PrivateKey()
 	if err != nil {
-		return nil, err
+		m.log.Error(err.Error())
+		resp.Status = drpc.DaosInvalidInput // something is wrong with the cert config
+		return m.marshalResp(resp)
 	}
 
 	cred, err := auth.AuthSysRequestFromCreds(m.ext, info, signingKey)
 	if err != nil {
-		return nil, errors.WithMessage(err, "Failed to get AuthSys struct")
+		m.log.Errorf("Failed to get AuthSys struct: %s", err)
+		resp.Status = drpc.DaosMiscError
+		return m.marshalResp(resp)
 	}
 
-	resp := &auth.GetCredentialResp{Status: 0, Cred: cred}
-
-	responseBytes, err := proto.Marshal(resp)
-	if err != nil {
-		return nil, drpc.MarshalingFailure()
-	}
-	return responseBytes, nil
+	resp.Cred = cred
+	return m.marshalResp(resp)
 }
 
 // ID will return Security module ID

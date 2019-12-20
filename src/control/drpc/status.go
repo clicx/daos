@@ -33,7 +33,7 @@ type DaosStatus int32
 
 const (
 	// DaosSuccess indicates no error
-	DaosSuccess = C.DER_SUCCESS
+	DaosSuccess DaosStatus = 0
 	// DaosNoPermission indicates that access to a resource was denied
 	DaosNoPermission = -C.DER_NO_PERM
 	// DaosNoHandle indicates the handle was invalid
@@ -110,7 +110,7 @@ const (
 
 const (
 	// DaosIOError indicates a generic IO error
-	DaosIOError = -C.DER_IO
+	DaosIOError DaosStatus = -C.DER_IO
 	// DaosFreeMemError indicates an error freeing memory
 	DaosFreeMemError = -C.DER_FREE_MEM
 	// DaosNoEntry indicates that the entry was not found
