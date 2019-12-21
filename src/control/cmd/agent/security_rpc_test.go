@@ -38,7 +38,7 @@ import (
 	"github.com/daos-stack/daos/src/control/security/auth"
 )
 
-func TestSecurityModule_ID(t *testing.T) {
+func TestAgentSecurityModule_ID(t *testing.T) {
 	log, buf := logging.NewTestLogger(t.Name())
 	defer common.ShowBufferOnFailure(t, buf)
 
@@ -56,7 +56,7 @@ func defaultTestTransportConfig() *security.TransportConfig {
 	return &security.TransportConfig{AllowInsecure: true}
 }
 
-func TestSecurityModule_HandleCall_BadMethod(t *testing.T) {
+func TestAgentSecurityModule_HandleCall_BadMethod(t *testing.T) {
 	log, buf := logging.NewTestLogger(t.Name())
 	defer common.ShowBufferOnFailure(t, buf)
 
@@ -114,7 +114,7 @@ func expectCredResp(t *testing.T, respBytes []byte, expStatus int32, expCred boo
 	common.AssertEqual(t, resp.Cred != nil, expCred, "credential expectation not met")
 }
 
-func TestSecurityModule_RequestCreds_OK(t *testing.T) {
+func TestAgentSecurityModule_RequestCreds_OK(t *testing.T) {
 	log, buf := logging.NewTestLogger(t.Name())
 	defer common.ShowBufferOnFailure(t, buf)
 
@@ -132,7 +132,7 @@ func TestSecurityModule_RequestCreds_OK(t *testing.T) {
 	expectCredResp(t, respBytes, 0, true)
 }
 
-func TestSecurityModule_RequestCreds_NotUnixConn(t *testing.T) {
+func TestAgentSecurityModule_RequestCreds_NotUnixConn(t *testing.T) {
 	log, buf := logging.NewTestLogger(t.Name())
 	defer common.ShowBufferOnFailure(t, buf)
 
@@ -146,7 +146,7 @@ func TestSecurityModule_RequestCreds_NotUnixConn(t *testing.T) {
 	}
 }
 
-func TestSecurityModule_RequestCreds_NotConnected(t *testing.T) {
+func TestAgentSecurityModule_RequestCreds_NotConnected(t *testing.T) {
 	log, buf := logging.NewTestLogger(t.Name())
 	defer common.ShowBufferOnFailure(t, buf)
 
@@ -165,7 +165,7 @@ func TestSecurityModule_RequestCreds_NotConnected(t *testing.T) {
 	expectCredResp(t, respBytes, int32(drpc.DaosMiscError), false)
 }
 
-func TestSecurityModule_RequestCreds_BadConfig(t *testing.T) {
+func TestAgentSecurityModule_RequestCreds_BadConfig(t *testing.T) {
 	log, buf := logging.NewTestLogger(t.Name())
 	defer common.ShowBufferOnFailure(t, buf)
 
@@ -195,7 +195,7 @@ func (e *errorExt) LookupGroupID(gid uint32) (*user.Group, error) {
 	return nil, errors.New("LookupGroupID")
 }
 
-func TestSecurityModule_RequestCreds_BadUid(t *testing.T) {
+func TestAgentSecurityModule_RequestCreds_BadUid(t *testing.T) {
 	log, buf := logging.NewTestLogger(t.Name())
 	defer common.ShowBufferOnFailure(t, buf)
 
