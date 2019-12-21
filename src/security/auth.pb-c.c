@@ -97,51 +97,6 @@ void   auth__sys__free_unpacked
   assert(message->base.descriptor == &auth__sys__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   auth__sys_verifier__init
-                     (Auth__SysVerifier         *message)
-{
-  static const Auth__SysVerifier init_value = AUTH__SYS_VERIFIER__INIT;
-  *message = init_value;
-}
-size_t auth__sys_verifier__get_packed_size
-                     (const Auth__SysVerifier *message)
-{
-  assert(message->base.descriptor == &auth__sys_verifier__descriptor);
-  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
-}
-size_t auth__sys_verifier__pack
-                     (const Auth__SysVerifier *message,
-                      uint8_t       *out)
-{
-  assert(message->base.descriptor == &auth__sys_verifier__descriptor);
-  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
-}
-size_t auth__sys_verifier__pack_to_buffer
-                     (const Auth__SysVerifier *message,
-                      ProtobufCBuffer *buffer)
-{
-  assert(message->base.descriptor == &auth__sys_verifier__descriptor);
-  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
-}
-Auth__SysVerifier *
-       auth__sys_verifier__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data)
-{
-  return (Auth__SysVerifier *)
-     protobuf_c_message_unpack (&auth__sys_verifier__descriptor,
-                                allocator, len, data);
-}
-void   auth__sys_verifier__free_unpacked
-                     (Auth__SysVerifier *message,
-                      ProtobufCAllocator *allocator)
-{
-  if(!message)
-    return;
-  assert(message->base.descriptor == &auth__sys_verifier__descriptor);
-  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
-}
 void   auth__credential__init
                      (Auth__Credential         *message)
 {
@@ -474,44 +429,6 @@ const ProtobufCMessageDescriptor auth__sys__descriptor =
   auth__sys__field_indices_by_name,
   1,  auth__sys__number_ranges,
   (ProtobufCMessageInit) auth__sys__init,
-  NULL,NULL,NULL    /* reserved[123] */
-};
-static const ProtobufCFieldDescriptor auth__sys_verifier__field_descriptors[1] =
-{
-  {
-    "signature",
-    1,
-    PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_BYTES,
-    0,   /* quantifier_offset */
-    offsetof(Auth__SysVerifier, signature),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-};
-static const unsigned auth__sys_verifier__field_indices_by_name[] = {
-  0,   /* field[0] = signature */
-};
-static const ProtobufCIntRange auth__sys_verifier__number_ranges[1 + 1] =
-{
-  { 1, 0 },
-  { 0, 1 }
-};
-const ProtobufCMessageDescriptor auth__sys_verifier__descriptor =
-{
-  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "auth.SysVerifier",
-  "SysVerifier",
-  "Auth__SysVerifier",
-  "auth",
-  sizeof(Auth__SysVerifier),
-  1,
-  auth__sys_verifier__field_descriptors,
-  auth__sys_verifier__field_indices_by_name,
-  1,  auth__sys_verifier__number_ranges,
-  (ProtobufCMessageInit) auth__sys_verifier__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 static const ProtobufCFieldDescriptor auth__credential__field_descriptors[3] =

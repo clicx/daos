@@ -45,11 +45,6 @@ message Sys {
 	string secctx = 6; // Additional field for MAC label
 }
 
-// Token structure for AUTH_SYS flavor verifier
-message SysVerifier {
-	bytes signature = 1; // signature of the auth token data
-}
-
 // Token and verifier are expected to have the same flavor type.
 message Credential {
 	Token token = 1; // authentication token

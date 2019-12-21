@@ -17,7 +17,6 @@ PROTOBUF_C__BEGIN_DECLS
 
 typedef struct _Auth__Token Auth__Token;
 typedef struct _Auth__Sys Auth__Sys;
-typedef struct _Auth__SysVerifier Auth__SysVerifier;
 typedef struct _Auth__Credential Auth__Credential;
 typedef struct _Auth__GetCredentialResp Auth__GetCredentialResp;
 typedef struct _Auth__ValidateCredentialReq Auth__ValidateCredentialReq;
@@ -89,22 +88,6 @@ struct  _Auth__Sys
 #define AUTH__SYS__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&auth__sys__descriptor) \
     , 0, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, 0,NULL, (char *)protobuf_c_empty_string }
-
-
-/*
- * Token structure for AUTH_SYS flavor verifier
- */
-struct  _Auth__SysVerifier
-{
-  ProtobufCMessage base;
-  /*
-   * signature of the auth token data
-   */
-  ProtobufCBinaryData signature;
-};
-#define AUTH__SYS_VERIFIER__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&auth__sys_verifier__descriptor) \
-    , {0,NULL} }
 
 
 /*
@@ -228,25 +211,6 @@ Auth__Sys *
 void   auth__sys__free_unpacked
                      (Auth__Sys *message,
                       ProtobufCAllocator *allocator);
-/* Auth__SysVerifier methods */
-void   auth__sys_verifier__init
-                     (Auth__SysVerifier         *message);
-size_t auth__sys_verifier__get_packed_size
-                     (const Auth__SysVerifier   *message);
-size_t auth__sys_verifier__pack
-                     (const Auth__SysVerifier   *message,
-                      uint8_t             *out);
-size_t auth__sys_verifier__pack_to_buffer
-                     (const Auth__SysVerifier   *message,
-                      ProtobufCBuffer     *buffer);
-Auth__SysVerifier *
-       auth__sys_verifier__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data);
-void   auth__sys_verifier__free_unpacked
-                     (Auth__SysVerifier *message,
-                      ProtobufCAllocator *allocator);
 /* Auth__Credential methods */
 void   auth__credential__init
                      (Auth__Credential         *message);
@@ -331,9 +295,6 @@ typedef void (*Auth__Token_Closure)
 typedef void (*Auth__Sys_Closure)
                  (const Auth__Sys *message,
                   void *closure_data);
-typedef void (*Auth__SysVerifier_Closure)
-                 (const Auth__SysVerifier *message,
-                  void *closure_data);
 typedef void (*Auth__Credential_Closure)
                  (const Auth__Credential *message,
                   void *closure_data);
@@ -355,7 +316,6 @@ typedef void (*Auth__ValidateCredentialResp_Closure)
 extern const ProtobufCEnumDescriptor    auth__flavor__descriptor;
 extern const ProtobufCMessageDescriptor auth__token__descriptor;
 extern const ProtobufCMessageDescriptor auth__sys__descriptor;
-extern const ProtobufCMessageDescriptor auth__sys_verifier__descriptor;
 extern const ProtobufCMessageDescriptor auth__credential__descriptor;
 extern const ProtobufCMessageDescriptor auth__get_credential_resp__descriptor;
 extern const ProtobufCMessageDescriptor auth__validate_credential_req__descriptor;
